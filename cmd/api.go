@@ -61,55 +61,58 @@ func (app *application) v1(r *chi.Mux) *chi.Mux {
 		})
 	})
 
-	authService := auth.NewService(repo.New(app.db))
-	authHandler := auth.NewHandler(authService)
-	authHandler.RegisterRoutes(router, repo.New(app.db))
+	pgRepo := repo.New(app.db)
+	authMiddleware := auth.NewMiddleware(pgRepo)
 
-	studentService := students.NewService(repo.New(app.db))
+	authService := auth.NewService(pgRepo)
+	authHandler := auth.NewHandler(authService)
+	authHandler.RegisterRoutes(router, authMiddleware)
+
+	studentService := students.NewService(pgRepo)
 	studentHandler := students.NewHandler(studentService)
 	studentHandler.RegisterRoutes(router)
 
-	guardianService := guardians.NewService(repo.New(app.db))
+	guardianService := guardians.NewService(pgRepo)
 	guardianHandler := guardians.NewHandler(guardianService)
 	guardianHandler.RegisterRoutes(router)
 
-	courseService := courses.NewService(repo.New(app.db))
+	courseService := courses.NewService(pgRepo)
 	courseHandler := courses.NewHandler(courseService)
 	courseHandler.RegisterRoutes(router)
 
-	studentGuardianService := studentguardians.NewService(repo.New(app.db))
+	studentGuardianService := studentguardians.NewService(pgRepo)
 	studentGuardianHandler := studentguardians.NewHandler(studentGuardianService)
 	studentGuardianHandler.RegisterRoutes(router)
 
-	enrollmentService := enrollments.NewService(repo.New(app.db))
+	enrollmentService := enrollments.NewService(pgRepo)
 	enrollmentHandler := enrollments.NewHandler(enrollmentService)
 	enrollmentHandler.RegisterRoutes(router)
 
-	subjectsService := subjects.NewService(repo.New(app.db))
+	subjectsService := subjects.NewService(pgRepo)
 	subjectsHandler := subjects.NewHandler(subjectsService)
 	subjectsHandler.RegisterRoutes(router)
 
-	schedulesService := schedules.NewService(repo.New(app.db))
+	schedulesService := schedules.NewService(pgRepo)
 	schedulesHandler := schedules.NewHandler(schedulesService)
 	schedulesHandler.RegisterRoutes(router)
 
-	studentSubjectsService := studentsubjects.NewService(repo.New(app.db))
+	studentSubjectsService := studentsubjects.NewService(pgRepo)
 	studentSubjectsHandler := studentsubjects.NewHandler(studentSubjectsService)
 	studentSubjectsHandler.RegisterRoutes(router)
 
-	permissionsService := permissions.NewService(repo.New(app.db))
+	permissionsService := permissions.NewService(pgRepo)
 	permissionsHandler := permissions.NewHandler(permissionsService)
 	permissionsHandler.RegisterRoutes(router)
 
-	occurrencesTypesService := occurrencestypes.NewService(repo.New(app.db))
+	occurrencesTypesService := occurrencestypes.NewService(pgRepo)
 	occurrencesTypesHandler := occurrencestypes.NewHandler(occurrencesTypesService)
 	occurrencesTypesHandler.RegisterRoutes(router)
 
-	occurrencesService := occurrences.NewService(repo.New(app.db))
+	occurrencesService := occurrences.NewService(pgRepo)
 	occurrencesHandler := occurrences.NewHandler(occurrencesService)
-	occurrencesHandler.RegisterRoutes(router, repo.New(app.db))
+	occurrencesHandler.RegisterRoutes(router, authMiddleware)
 
-	warningsService := warnings.NewService(repo.New(app.db))
+	warningsService := warnings.NewService(pgRepo)
 	warningsHandler := warnings.NewHandler(warningsService)
 	warningsHandler.RegisterRoutes(router)
 

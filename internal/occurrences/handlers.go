@@ -21,14 +21,13 @@ func NewHandler(service Service) *handler {
 	}
 }
 
-func (h *handler) RegisterRoutes(router *chi.Mux, repo *repo.Queries) {
+func (h *handler) RegisterRoutes(router *chi.Mux, authMiddleware *auth.Middleware) {
 	occurrencesRouter := chi.NewRouter()
 	occurrencesRouter.Get("/", h.getOccurrences)
 	occurrencesRouter.Get("/{id}", h.getOccurrenceByID)
 	occurrencesRouter.Put("/{id}", h.updateOccurrence)
 	occurrencesRouter.Delete("/{id}", h.deleteOccurrence)
 
-	authMiddleware := auth.NewMiddleware(repo)
 	occurrencesRouter.Post("/", authMiddleware.RequiresAuth(h.createOccurrence))
 
 	router.Mount("/occurrences", occurrencesRouter)

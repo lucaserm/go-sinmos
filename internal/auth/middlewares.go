@@ -16,17 +16,17 @@ import (
 
 type authedHandler func(http.ResponseWriter, *http.Request, repo.User)
 
-type middleware struct {
+type Middleware struct {
 	repo *repo.Queries
 }
 
-func NewMiddleware(repo *repo.Queries) *middleware {
-	return &middleware{
+func NewMiddleware(repo *repo.Queries) *Middleware {
+	return &Middleware{
 		repo: repo,
 	}
 }
 
-func (m *middleware) RequiresAuth(handler authedHandler) http.HandlerFunc {
+func (m *Middleware) RequiresAuth(handler authedHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		token, err := GetJWTToken(r.Header)
 		if err != nil {

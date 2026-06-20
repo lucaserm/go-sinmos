@@ -19,12 +19,10 @@ func NewHandler(service Service) *handler {
 	}
 }
 
-func (h *handler) RegisterRoutes(router *chi.Mux, repo *repo.Queries) {
+func (h *handler) RegisterRoutes(router *chi.Mux, authMiddleware *Middleware) {
 	authRouter := chi.NewRouter()
 	authRouter.Post("/register", h.register)
 	authRouter.Post("/login", h.login)
-
-	authMiddleware := NewMiddleware(repo)
 	authRouter.Post("/refresh", h.refreshToken)
 	authRouter.Get("/me", authMiddleware.RequiresAuth(h.me))
 
