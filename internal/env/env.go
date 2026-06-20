@@ -1,0 +1,27 @@
+package env
+
+import (
+	"os"
+	"strconv"
+)
+
+func GetString(key, fallback string) string {
+	val, exists := os.LookupEnv(key)
+	if exists {
+		return val
+	}
+
+	return fallback
+}
+
+func GetInt(key string, fallback int64) int64 {
+	if val, ok := os.LookupEnv(key); ok {
+		i, err := strconv.ParseInt(val, 10, 64)
+		if err != nil {
+			return fallback
+		}
+
+		return i
+	}
+	return fallback
+}
