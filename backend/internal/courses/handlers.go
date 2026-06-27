@@ -75,6 +75,9 @@ func (h *handler) getCourses(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) getCourseByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	if !json.ValidUUID(w, id) {
+		return
+	}
 	response, err := h.service.getCourseByID(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -104,6 +107,9 @@ func (h *handler) updateCourse(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := chi.URLParam(r, "id")
+	if !json.ValidUUID(w, id) {
+		return
+	}
 	response, err := h.service.updateCourse(r.Context(), id, payload)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -121,6 +127,9 @@ func (h *handler) updateCourse(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) deleteCourse(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	if !json.ValidUUID(w, id) {
+		return
+	}
 	err := h.service.deleteCourse(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

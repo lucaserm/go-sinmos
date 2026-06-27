@@ -12,7 +12,7 @@ type (
 	UpdateCoursePayload struct {
 		Name        string `json:"name,omitempty"`
 		Description string `json:"description,omitempty"`
-		Session     string `json:"session,omitempty" validate:"oneof=MORNING AFTERNOON EVENING"`
+		Session     string `json:"session,omitempty" validate:"omitempty,oneof=MORNING AFTERNOON EVENING"`
 	}
 
 	CourseResponse struct {

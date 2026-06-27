@@ -92,34 +92,51 @@ func (s *svc) updateSchedule(ctx context.Context, id string, payload UpdateSched
 		return ScheduleResponse{}, err
 	}
 
-	startParsed, err := time.Parse("15:04", payload.StartTime)
+	// Read-modify-write: every field is optional. Parse subjectId/times only
+	// when provided (uuid.MustParse and time.Parse would otherwise fail on empty
+	// values and make a partial update impossible).
+	existing, err := s.repo.GetScheduleByID(ctx, pgtype.UUID{Bytes: uidParsed, Valid: true})
 	if err != nil {
 		return ScheduleResponse{}, err
 	}
 
-	endParsed, err := time.Parse("15:04", payload.EndTime)
-	if err != nil {
-		return ScheduleResponse{}, err
+	params := repo.UpdateScheduleParams{
+		ID:        existing.ID,
+		SubjectID: existing.SubjectID,
+		Session:   existing.Session,
+		DayOfWeek: existing.DayOfWeek,
+		StartTime: existing.StartTime,
+		EndTime:   existing.EndTime,
+	}
+	if payload.SubjectID != "" {
+		subjectID, err := uuid.Parse(payload.SubjectID)
+		if err != nil {
+			return ScheduleResponse{}, err
+		}
+		params.SubjectID = pgtype.UUID{Bytes: subjectID, Valid: true}
+	}
+	if payload.Session != "" {
+		params.Session = repo.Session(payload.Session)
+	}
+	if payload.DayOfWeek != "" {
+		params.DayOfWeek = payload.DayOfWeek
+	}
+	if payload.StartTime != "" {
+		startParsed, err := time.Parse("15:04", payload.StartTime)
+		if err != nil {
+			return ScheduleResponse{}, err
+		}
+		params.StartTime = pgtype.Time{Microseconds: toMicroseconds(startParsed), Valid: true}
+	}
+	if payload.EndTime != "" {
+		endParsed, err := time.Parse("15:04", payload.EndTime)
+		if err != nil {
+			return ScheduleResponse{}, err
+		}
+		params.EndTime = pgtype.Time{Microseconds: toMicroseconds(endParsed), Valid: true}
 	}
 
-	start := pgtype.Time{
-		Microseconds: toMicroseconds(startParsed),
-		Valid:        true,
-	}
-
-	end := pgtype.Time{
-		Microseconds: toMicroseconds(endParsed),
-		Valid:        true,
-	}
-
-	schedule, err := s.repo.UpdateSchedule(ctx, repo.UpdateScheduleParams{
-		ID:        pgtype.UUID{Bytes: uidParsed, Valid: true},
-		SubjectID: pgtype.UUID{Bytes: uuid.MustParse(payload.SubjectID), Valid: true},
-		Session:   repo.Session(payload.Session),
-		DayOfWeek: payload.DayOfWeek,
-		StartTime: start,
-		EndTime:   end,
-	})
+	schedule, err := s.repo.UpdateSchedule(ctx, params)
 	if err != nil {
 		return ScheduleResponse{}, err
 	}

@@ -67,12 +67,29 @@ func (s *svc) updateGuardian(ctx context.Context, id string, payload UpdateGuard
 	if err != nil {
 		return GuardianResponse{}, err
 	}
-	guardian, err := s.repo.UpdateGuardian(ctx, repo.UpdateGuardianParams{
-		ID:    pgtype.UUID{Bytes: uidParsed, Valid: true},
-		Name:  payload.Name,
-		Email: payload.Email,
-		Phone: payload.Phone,
-	})
+	// Read-modify-write: override only the optional fields that were provided.
+	existing, err := s.repo.GetGuardianByID(ctx, pgtype.UUID{Bytes: uidParsed, Valid: true})
+	if err != nil {
+		return GuardianResponse{}, err
+	}
+
+	params := repo.UpdateGuardianParams{
+		ID:    existing.ID,
+		Name:  existing.Name,
+		Email: existing.Email,
+		Phone: existing.Phone,
+	}
+	if payload.Name != "" {
+		params.Name = payload.Name
+	}
+	if payload.Email != "" {
+		params.Email = payload.Email
+	}
+	if payload.Phone != "" {
+		params.Phone = payload.Phone
+	}
+
+	guardian, err := s.repo.UpdateGuardian(ctx, params)
 	if err != nil {
 		return GuardianResponse{}, err
 	}

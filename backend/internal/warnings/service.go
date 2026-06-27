@@ -67,11 +67,30 @@ func (s *svc) updateWarning(ctx context.Context, id string, payload UpdateWarnin
 		return WarningResponse{}, err
 	}
 
-	warning, err := s.repo.UpdateWarning(ctx, repo.UpdateWarningParams{
-		ID:           pgtype.UUID{Bytes: uidParsed, Valid: true},
-		OccurrenceID: pgtype.UUID{Bytes: uuid.MustParse(payload.OccurrenceID), Valid: true},
-		Report:       payload.Report,
-	})
+	// Read-modify-write: both fields are optional. Parse occurrenceId only when
+	// provided (uuid.MustParse would panic on an empty value).
+	existing, err := s.repo.GetWarningByID(ctx, pgtype.UUID{Bytes: uidParsed, Valid: true})
+	if err != nil {
+		return WarningResponse{}, err
+	}
+
+	params := repo.UpdateWarningParams{
+		ID:           existing.ID,
+		OccurrenceID: existing.OccurrenceID,
+		Report:       existing.Report,
+	}
+	if payload.OccurrenceID != "" {
+		occurrenceID, err := uuid.Parse(payload.OccurrenceID)
+		if err != nil {
+			return WarningResponse{}, err
+		}
+		params.OccurrenceID = pgtype.UUID{Bytes: occurrenceID, Valid: true}
+	}
+	if payload.Report != "" {
+		params.Report = payload.Report
+	}
+
+	warning, err := s.repo.UpdateWarning(ctx, params)
 	if err != nil {
 		return WarningResponse{}, err
 	}

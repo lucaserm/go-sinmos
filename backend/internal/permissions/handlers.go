@@ -75,6 +75,9 @@ func (h *handler) getPermissions(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) getPermissionByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	if !json.ValidUUID(w, id) {
+		return
+	}
 	response, err := h.service.getPermissionByID(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -104,6 +107,9 @@ func (h *handler) updatePermission(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := chi.URLParam(r, "id")
+	if !json.ValidUUID(w, id) {
+		return
+	}
 	response, err := h.service.updatePermission(r.Context(), id, payload)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -121,6 +127,9 @@ func (h *handler) updatePermission(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) deletePermission(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	if !json.ValidUUID(w, id) {
+		return
+	}
 	err := h.service.deletePermission(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

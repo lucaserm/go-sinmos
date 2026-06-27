@@ -76,20 +76,30 @@ func (s *svc) updateCourse(ctx context.Context, id string, payload UpdateCourseP
 		return CourseResponse{}, err
 	}
 
-	var description pgtype.Text
-
-	if payload.Description != "" {
-		description = pgtype.Text{String: payload.Description, Valid: true}
-	} else {
-		description = pgtype.Text{Valid: false}
+	// Read-modify-write: every payload field is optional, so start from the
+	// existing row and override only what was provided (avoids blanking fields).
+	existing, err := s.repo.GetCourseByID(ctx, pgtype.UUID{Bytes: uidParsed, Valid: true})
+	if err != nil {
+		return CourseResponse{}, err
 	}
 
-	course, err := s.repo.UpdateCourse(ctx, repo.UpdateCourseParams{
-		ID:          pgtype.UUID{Bytes: uidParsed, Valid: true},
-		Name:        payload.Name,
-		Description: description,
-		Session:     repo.Session(payload.Session),
-	})
+	params := repo.UpdateCourseParams{
+		ID:          existing.ID,
+		Name:        existing.Name,
+		Description: existing.Description,
+		Session:     existing.Session,
+	}
+	if payload.Name != "" {
+		params.Name = payload.Name
+	}
+	if payload.Description != "" {
+		params.Description = pgtype.Text{String: payload.Description, Valid: true}
+	}
+	if payload.Session != "" {
+		params.Session = repo.Session(payload.Session)
+	}
+
+	course, err := s.repo.UpdateCourse(ctx, params)
 	if err != nil {
 		return CourseResponse{}, err
 	}

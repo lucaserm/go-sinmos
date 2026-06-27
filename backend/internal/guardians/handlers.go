@@ -75,6 +75,9 @@ func (h *handler) getGuardians(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) getGuardianByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	if !json.ValidUUID(w, id) {
+		return
+	}
 	response, err := h.service.getGuardianByID(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -104,6 +107,9 @@ func (h *handler) updateGuardian(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := chi.URLParam(r, "id")
+	if !json.ValidUUID(w, id) {
+		return
+	}
 	response, err := h.service.updateGuardian(r.Context(), id, payload)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -121,6 +127,9 @@ func (h *handler) updateGuardian(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) deleteGuardian(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	if !json.ValidUUID(w, id) {
+		return
+	}
 	err := h.service.deleteGuardian(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

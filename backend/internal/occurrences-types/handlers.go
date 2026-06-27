@@ -75,6 +75,9 @@ func (h *handler) getOccurrenceTypes(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) getOccurrenceTypeByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	if !json.ValidUUID(w, id) {
+		return
+	}
 	response, err := h.service.getOccurrenceTypeByID(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -104,6 +107,9 @@ func (h *handler) updateOccurrenceType(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := chi.URLParam(r, "id")
+	if !json.ValidUUID(w, id) {
+		return
+	}
 	response, err := h.service.updateOccurrenceType(r.Context(), id, payload)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -121,6 +127,9 @@ func (h *handler) updateOccurrenceType(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) deleteOccurrenceType(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	if !json.ValidUUID(w, id) {
+		return
+	}
 	err := h.service.deleteOccurrenceType(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

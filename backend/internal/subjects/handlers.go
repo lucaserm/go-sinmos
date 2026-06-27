@@ -75,6 +75,9 @@ func (h *handler) getSubjects(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) getSubjectByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	if !json.ValidUUID(w, id) {
+		return
+	}
 	response, err := h.service.getSubjectByID(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -104,6 +107,9 @@ func (h *handler) updateSubject(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := chi.URLParam(r, "id")
+	if !json.ValidUUID(w, id) {
+		return
+	}
 	response, err := h.service.updateSubject(r.Context(), id, payload)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -121,6 +127,9 @@ func (h *handler) updateSubject(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) deleteSubject(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	if !json.ValidUUID(w, id) {
+		return
+	}
 	err := h.service.deleteSubject(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

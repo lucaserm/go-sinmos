@@ -68,12 +68,38 @@ func (s *svc) updateEnrollment(ctx context.Context, id string, payload UpdateEnr
 		return EnrollmentResponse{}, err
 	}
 
-	enrollment, err := s.repo.UpdateEnrollment(ctx, repo.UpdateEnrollmentParams{
-		ID:        pgtype.UUID{Bytes: uidParsed, Valid: true},
-		StudentID: pgtype.UUID{Bytes: uuid.MustParse(payload.StudentID), Valid: true},
-		CourseID:  pgtype.UUID{Bytes: uuid.MustParse(payload.CourseID), Valid: true},
-		Year:      payload.Year,
-	})
+	// Read-modify-write: all fields are optional. Parse the UUIDs only when
+	// provided (uuid.MustParse would panic on empty values).
+	existing, err := s.repo.GetEnrollmentByID(ctx, pgtype.UUID{Bytes: uidParsed, Valid: true})
+	if err != nil {
+		return EnrollmentResponse{}, err
+	}
+
+	params := repo.UpdateEnrollmentParams{
+		ID:        existing.ID,
+		StudentID: existing.StudentID,
+		CourseID:  existing.CourseID,
+		Year:      existing.Year,
+	}
+	if payload.StudentID != "" {
+		studentID, err := uuid.Parse(payload.StudentID)
+		if err != nil {
+			return EnrollmentResponse{}, err
+		}
+		params.StudentID = pgtype.UUID{Bytes: studentID, Valid: true}
+	}
+	if payload.CourseID != "" {
+		courseID, err := uuid.Parse(payload.CourseID)
+		if err != nil {
+			return EnrollmentResponse{}, err
+		}
+		params.CourseID = pgtype.UUID{Bytes: courseID, Valid: true}
+	}
+	if payload.Year != 0 {
+		params.Year = payload.Year
+	}
+
+	enrollment, err := s.repo.UpdateEnrollment(ctx, params)
 	if err != nil {
 		return EnrollmentResponse{}, err
 	}

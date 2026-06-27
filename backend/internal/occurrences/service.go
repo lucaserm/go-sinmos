@@ -25,11 +25,6 @@ func (s *svc) createOccurrence(ctx context.Context, payload CreateOccurrencePayl
 		return OccurrenceResponse{}, err
 	}
 
-	userRelatedIdID, err := uuid.Parse(payload.UserRelatedID)
-	if err != nil {
-		return OccurrenceResponse{}, err
-	}
-
 	occurrenceTypeID, err := uuid.Parse(payload.OccurrenceTypeID)
 	if err != nil {
 		return OccurrenceResponse{}, err
@@ -45,14 +40,30 @@ func (s *svc) createOccurrence(ctx context.Context, payload CreateOccurrencePayl
 		return OccurrenceResponse{}, err
 	}
 
+	// userRelatedId is optional — leave the column NULL when omitted.
+	userRelatedID := pgtype.UUID{}
+	if payload.UserRelatedID != "" {
+		parsed, err := uuid.Parse(payload.UserRelatedID)
+		if err != nil {
+			return OccurrenceResponse{}, err
+		}
+		userRelatedID = pgtype.UUID{Bytes: parsed, Valid: true}
+	}
+
+	// status is optional — default to PENDING (matches the column default).
+	status := payload.Status
+	if status == "" {
+		status = string(repo.OccurrenceStatusPENDING)
+	}
+
 	occurrence, err := s.repo.CreateOccurrence(ctx, repo.CreateOccurrenceParams{
 		ID:               pgtype.UUID{Bytes: uid, Valid: true},
 		UserID:           pgtype.UUID{Bytes: userId, Valid: true},
 		OccurrenceTypeID: pgtype.UUID{Bytes: occurrenceTypeID, Valid: true},
 		StudentID:        pgtype.UUID{Bytes: studentID, Valid: true},
 		OccurredAt:       pgtype.Timestamptz{Time: occurredAt, Valid: true},
-		UserRelatedID:    pgtype.UUID{Bytes: userRelatedIdID, Valid: true},
-		Status:           repo.OccurrenceStatus(payload.Status),
+		UserRelatedID:    userRelatedID,
+		Status:           repo.OccurrenceStatus(status),
 	})
 	if err != nil {
 		return OccurrenceResponse{}, err
@@ -92,15 +103,48 @@ func (s *svc) updateOccurrence(ctx context.Context, id string, payload UpdateOcc
 		return OccurrenceResponse{}, err
 	}
 
-	occurrence, err := s.repo.UpdateOccurrence(ctx, repo.UpdateOccurrenceParams{
-		ID:               pgtype.UUID{Bytes: uidParsed, Valid: true},
-		UserID:           pgtype.UUID{Bytes: uuid.MustParse(payload.UserID), Valid: true},
-		OccurrenceTypeID: pgtype.UUID{Bytes: uuid.MustParse(payload.OccurrenceTypeID), Valid: true},
-		StudentID:        pgtype.UUID{Bytes: uuid.MustParse(payload.StudentID), Valid: true},
-		OccurredAt:       pgtype.Timestamptz{Time: time.Time{}, Valid: true}, // Placeholder for actual occurredAt value
-		UserRelatedID:    pgtype.UUID{Bytes: uuid.MustParse(payload.UserRelatedID), Valid: true},
-		Status:           repo.OccurrenceStatus(payload.Status),
-	})
+	// Read-modify-write: every field on UpdateOccurrencePayload is optional, so
+	// start from the existing row and only override what the caller provided.
+	// This keeps a partial update (e.g. status only) from blanking out the rest.
+	existing, err := s.repo.GetOccurrenceByID(ctx, pgtype.UUID{Bytes: uidParsed, Valid: true})
+	if err != nil {
+		return OccurrenceResponse{}, err
+	}
+
+	params := repo.UpdateOccurrenceParams{
+		ID:               existing.ID,
+		UserID:           existing.UserID,
+		OccurrenceTypeID: existing.OccurrenceTypeID,
+		StudentID:        existing.StudentID,
+		OccurredAt:       existing.OccurredAt,
+		UserRelatedID:    existing.UserRelatedID,
+		Status:           existing.Status,
+	}
+
+	if payload.UserID != "" {
+		params.UserID = pgtype.UUID{Bytes: uuid.MustParse(payload.UserID), Valid: true}
+	}
+	if payload.OccurrenceTypeID != "" {
+		params.OccurrenceTypeID = pgtype.UUID{Bytes: uuid.MustParse(payload.OccurrenceTypeID), Valid: true}
+	}
+	if payload.StudentID != "" {
+		params.StudentID = pgtype.UUID{Bytes: uuid.MustParse(payload.StudentID), Valid: true}
+	}
+	if payload.OccurredAt != "" {
+		occurredAt, err := time.Parse(time.RFC3339, payload.OccurredAt)
+		if err != nil {
+			return OccurrenceResponse{}, err
+		}
+		params.OccurredAt = pgtype.Timestamptz{Time: occurredAt, Valid: true}
+	}
+	if payload.UserRelatedID != "" {
+		params.UserRelatedID = pgtype.UUID{Bytes: uuid.MustParse(payload.UserRelatedID), Valid: true}
+	}
+	if payload.Status != "" {
+		params.Status = repo.OccurrenceStatus(payload.Status)
+	}
+
+	occurrence, err := s.repo.UpdateOccurrence(ctx, params)
 	if err != nil {
 		return OccurrenceResponse{}, err
 	}

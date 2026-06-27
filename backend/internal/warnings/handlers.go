@@ -75,6 +75,9 @@ func (h *handler) getWarnings(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) getWarningByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	if !json.ValidUUID(w, id) {
+		return
+	}
 	response, err := h.service.getWarningByID(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -104,6 +107,9 @@ func (h *handler) updateWarning(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := chi.URLParam(r, "id")
+	if !json.ValidUUID(w, id) {
+		return
+	}
 	response, err := h.service.updateWarning(r.Context(), id, payload)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -121,6 +127,9 @@ func (h *handler) updateWarning(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) deleteWarning(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	if !json.ValidUUID(w, id) {
+		return
+	}
 	err := h.service.deleteWarning(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

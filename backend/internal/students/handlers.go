@@ -51,6 +51,9 @@ func (h *handler) getAllStudents(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) getStudentByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	if !json.ValidUUID(w, id) {
+		return
+	}
 	student, err := h.service.getStudentByID(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -92,6 +95,9 @@ func (h *handler) createStudent(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) updateStudent(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	if !json.ValidUUID(w, id) {
+		return
+	}
 	var student StudentUpdateRequest
 
 	if err := json.Read(r, &student); err != nil {
@@ -122,6 +128,9 @@ func (h *handler) updateStudent(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) deleteStudent(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	if !json.ValidUUID(w, id) {
+		return
+	}
 	if err := h.service.deleteStudent(r.Context(), id); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			json.WriteError(w, http.StatusNotFound, ErrStudentNotFound)

@@ -75,6 +75,9 @@ func (h *handler) getEnrollments(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) getEnrollmentByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	if !json.ValidUUID(w, id) {
+		return
+	}
 	response, err := h.service.getEnrollmentByID(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -104,6 +107,9 @@ func (h *handler) updateEnrollment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := chi.URLParam(r, "id")
+	if !json.ValidUUID(w, id) {
+		return
+	}
 	response, err := h.service.updateEnrollment(r.Context(), id, payload)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -121,6 +127,9 @@ func (h *handler) updateEnrollment(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) deleteEnrollment(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	if !json.ValidUUID(w, id) {
+		return
+	}
 	err := h.service.deleteEnrollment(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

@@ -71,14 +71,43 @@ func (s *svc) updatePermission(ctx context.Context, id string, payload UpdatePer
 		return PermissionResponse{}, err
 	}
 
-	permission, err := s.repo.UpdatePermission(ctx, repo.UpdatePermissionParams{
-		ID:           pgtype.UUID{Bytes: uidParsed, Valid: true},
-		StudentID:    pgtype.UUID{Bytes: uuid.MustParse(payload.StudentID), Valid: true},
-		Type:         repo.PermissionType(payload.Type),
-		Description:  payload.Description,
-		RequestedAt:  pgtype.Timestamptz{Time: time.UnixMilli(payload.RequestedAt), Valid: true},
-		ScheduledFor: pgtype.Timestamptz{Time: time.UnixMilli(payload.ScheduledFor), Valid: true},
-	})
+	// Read-modify-write: all fields are optional. Parse studentId only when
+	// provided (uuid.MustParse would panic on empty) and keep existing
+	// timestamps unless a new value was sent.
+	existing, err := s.repo.GetPermissionByID(ctx, pgtype.UUID{Bytes: uidParsed, Valid: true})
+	if err != nil {
+		return PermissionResponse{}, err
+	}
+
+	params := repo.UpdatePermissionParams{
+		ID:           existing.ID,
+		StudentID:    existing.StudentID,
+		Type:         existing.Type,
+		Description:  existing.Description,
+		RequestedAt:  existing.RequestedAt,
+		ScheduledFor: existing.ScheduledFor,
+	}
+	if payload.StudentID != "" {
+		studentID, err := uuid.Parse(payload.StudentID)
+		if err != nil {
+			return PermissionResponse{}, err
+		}
+		params.StudentID = pgtype.UUID{Bytes: studentID, Valid: true}
+	}
+	if payload.Type != "" {
+		params.Type = repo.PermissionType(payload.Type)
+	}
+	if payload.Description != "" {
+		params.Description = payload.Description
+	}
+	if payload.RequestedAt != 0 {
+		params.RequestedAt = pgtype.Timestamptz{Time: time.UnixMilli(payload.RequestedAt), Valid: true}
+	}
+	if payload.ScheduledFor != 0 {
+		params.ScheduledFor = pgtype.Timestamptz{Time: time.UnixMilli(payload.ScheduledFor), Valid: true}
+	}
+
+	permission, err := s.repo.UpdatePermission(ctx, params)
 	if err != nil {
 		return PermissionResponse{}, err
 	}

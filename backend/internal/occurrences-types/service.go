@@ -68,12 +68,29 @@ func (s *svc) updateOccurrenceType(ctx context.Context, id string, payload Updat
 		return OccurrenceTypeResponse{}, err
 	}
 
-	occurrenceType, err := s.repo.UpdateOccurrenceType(ctx, repo.UpdateOccurrenceTypeParams{
-		ID:          pgtype.UUID{Bytes: uidParsed, Valid: true},
-		Code:        payload.Code,
-		Description: payload.Description,
-		Severity:    payload.Severity,
-	})
+	// Read-modify-write: override only the optional fields that were provided.
+	existing, err := s.repo.GetOccurrenceTypeByID(ctx, pgtype.UUID{Bytes: uidParsed, Valid: true})
+	if err != nil {
+		return OccurrenceTypeResponse{}, err
+	}
+
+	params := repo.UpdateOccurrenceTypeParams{
+		ID:          existing.ID,
+		Code:        existing.Code,
+		Description: existing.Description,
+		Severity:    existing.Severity,
+	}
+	if payload.Code != "" {
+		params.Code = payload.Code
+	}
+	if payload.Description != "" {
+		params.Description = payload.Description
+	}
+	if payload.Severity != 0 {
+		params.Severity = payload.Severity
+	}
+
+	occurrenceType, err := s.repo.UpdateOccurrenceType(ctx, params)
 	if err != nil {
 		return OccurrenceTypeResponse{}, err
 	}

@@ -69,12 +69,29 @@ func (s *svc) updateSubject(ctx context.Context, id string, payload UpdateSubjec
 		return SubjectResponse{}, err
 	}
 
-	subject, err := s.repo.UpdateSubject(ctx, repo.UpdateSubjectParams{
-		ID:       pgtype.UUID{Bytes: uidParsed, Valid: true},
-		Name:     payload.Name,
-		Semester: payload.Semester,
-		Section:  payload.Section,
-	})
+	// Read-modify-write: override only the optional fields that were provided.
+	existing, err := s.repo.GetSubjectByID(ctx, pgtype.UUID{Bytes: uidParsed, Valid: true})
+	if err != nil {
+		return SubjectResponse{}, err
+	}
+
+	params := repo.UpdateSubjectParams{
+		ID:       existing.ID,
+		Name:     existing.Name,
+		Semester: existing.Semester,
+		Section:  existing.Section,
+	}
+	if payload.Name != "" {
+		params.Name = payload.Name
+	}
+	if payload.Semester != 0 {
+		params.Semester = payload.Semester
+	}
+	if payload.Section != "" {
+		params.Section = payload.Section
+	}
+
+	subject, err := s.repo.UpdateSubject(ctx, params)
 	if err != nil {
 		return SubjectResponse{}, err
 	}

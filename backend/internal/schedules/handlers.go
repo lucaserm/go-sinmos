@@ -75,6 +75,9 @@ func (h *handler) getSchedules(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) getScheduleByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	if !json.ValidUUID(w, id) {
+		return
+	}
 	response, err := h.service.getScheduleByID(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -104,6 +107,9 @@ func (h *handler) updateSchedule(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := chi.URLParam(r, "id")
+	if !json.ValidUUID(w, id) {
+		return
+	}
 	response, err := h.service.updateSchedule(r.Context(), id, payload)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -121,6 +127,9 @@ func (h *handler) updateSchedule(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) deleteSchedule(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	if !json.ValidUUID(w, id) {
+		return
+	}
 	err := h.service.deleteSchedule(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

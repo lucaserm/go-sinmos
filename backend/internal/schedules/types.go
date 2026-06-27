@@ -26,7 +26,7 @@ type (
 
 	UpdateSchedulePayload struct {
 		SubjectID string `json:"subjectId,omitempty"`
-		Session   string `json:"session,omitempty" validate:"oneof=MORNING AFTERNOON EVENING"`
+		Session   string `json:"session,omitempty" validate:"omitempty,oneof=MORNING AFTERNOON EVENING"`
 		DayOfWeek string `json:"dayOfWeek,omitempty"`
 		StartTime string `json:"startTime,omitempty"` // "08:00:00"
 		EndTime   string `json:"endTime,omitempty"`   // "10:00:00"
