@@ -1,0 +1,31 @@
+@import url('https://fonts.googleapis.com/css2?family=Lexend+Deca:wght@300;400;500;600;700&display=swap');
+@import 'tailwindcss';
+
+/* SINMOS theme — crimson/maroon/pink palette from the original app. */
+@theme {
+  --font-sans: 'Lexend Deca', ui-sans-serif, system-ui, sans-serif;
+
+  --color-brand-50: #fdf2f6;
+  --color-brand-100: #fce7ee;
+  --color-brand-200: #f9cfdd;
+  --color-brand-300: #f3a6bf;
+  --color-brand-400: #ee6695;
+  --color-brand-500: #dc143c;
+  --color-brand-600: #b64e73;
+  --color-brand-700: #662b3f;
+  --color-brand-800: #441d2a;
+  --color-brand-900: #220e15;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: var(--color-brand-50);
+  color: var(--color-brand-900);
+}
