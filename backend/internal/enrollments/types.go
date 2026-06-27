@@ -4,14 +4,14 @@ import "context"
 
 type (
 	CreateEnrollmentPayload struct {
-		StudentID string `json:"studentId" validate:"required"`
-		CourseID  string `json:"courseId" validate:"required"`
+		StudentID string `json:"studentId" validate:"required,uuid"`
+		CourseID  string `json:"courseId" validate:"required,uuid"`
 		Year      int32  `json:"year" validate:"required"`
 	}
 
 	UpdateEnrollmentPayload struct {
-		StudentID string `json:"studentId,omitempty"`
-		CourseID  string `json:"courseId,omitempty"`
+		StudentID string `json:"studentId,omitempty" validate:"omitempty,uuid"`
+		CourseID  string `json:"courseId,omitempty" validate:"omitempty,uuid"`
 		Year      int32  `json:"year,omitempty"`
 	}
 

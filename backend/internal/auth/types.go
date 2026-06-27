@@ -33,7 +33,7 @@ type (
 	}
 
 	RefreshTokenPayload struct {
-		RefreshToken string `json:"refreshToken" validate:"required"`
+		RefreshToken string `json:"refreshToken" validate:"required,uuid"`
 	}
 )
 

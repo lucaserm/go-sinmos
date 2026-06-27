@@ -4,14 +4,14 @@ import "context"
 
 type (
 	CreateSubjectPayload struct {
-		CourseID string `json:"courseId" validate:"required"`
+		CourseID string `json:"courseId" validate:"required,uuid"`
 		Name     string `json:"name" validate:"required"`
 		Semester int32  `json:"semester" validate:"required"`
 		Section  string `json:"section" validate:"required"`
 	}
 
 	UpdateSubjectPayload struct {
-		CourseID string `json:"courseId,omitempty"`
+		CourseID string `json:"courseId,omitempty" validate:"omitempty,uuid"`
 		Name     string `json:"name,omitempty"`
 		Semester int32  `json:"semester,omitempty"`
 		Section  string `json:"section,omitempty"`

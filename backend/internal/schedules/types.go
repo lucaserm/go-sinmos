@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS schedules (
 
 type (
 	CreateSchedulePayload struct {
-		SubjectID string `json:"subjectId" validate:"required"`
+		SubjectID string `json:"subjectId" validate:"required,uuid"`
 		Session   string `json:"session" validate:"required,oneof=MORNING AFTERNOON EVENING"`
 		DayOfWeek string `json:"dayOfWeek" validate:"required"`
 		StartTime string `json:"startTime" validate:"required"` // "08:00:00"
@@ -25,7 +25,7 @@ type (
 	}
 
 	UpdateSchedulePayload struct {
-		SubjectID string `json:"subjectId,omitempty"`
+		SubjectID string `json:"subjectId,omitempty" validate:"omitempty,uuid"`
 		Session   string `json:"session,omitempty" validate:"omitempty,oneof=MORNING AFTERNOON EVENING"`
 		DayOfWeek string `json:"dayOfWeek,omitempty"`
 		StartTime string `json:"startTime,omitempty"` // "08:00:00"

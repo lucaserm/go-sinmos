@@ -4,12 +4,12 @@ import "context"
 
 type (
 	CreateWarningPayload struct {
-		OccurrenceID string `json:"occurrenceId" validate:"required"`
+		OccurrenceID string `json:"occurrenceId" validate:"required,uuid"`
 		Report       string `json:"report" validate:"required"`
 	}
 
 	UpdateWarningPayload struct {
-		OccurrenceID string `json:"occurrenceId,omitempty"`
+		OccurrenceID string `json:"occurrenceId,omitempty" validate:"omitempty,uuid"`
 		Report       string `json:"report,omitempty"`
 	}
 

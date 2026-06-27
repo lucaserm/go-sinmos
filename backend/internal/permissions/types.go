@@ -6,7 +6,7 @@ import (
 
 type (
 	CreatePermissionPayload struct {
-		StudentID    string `json:"studentId" validate:"required"`
+		StudentID    string `json:"studentId" validate:"required,uuid"`
 		Type         string `json:"type" validate:"required,oneof=LEAVE STAY"`
 		Description  string `json:"description" validate:"required"`
 		RequestedAt  int64  `json:"requestedAt" validate:"required"`
@@ -14,7 +14,7 @@ type (
 	}
 
 	UpdatePermissionPayload struct {
-		StudentID    string `json:"studentId,omitempty"`
+		StudentID    string `json:"studentId,omitempty" validate:"omitempty,uuid"`
 		Type         string `json:"type,omitempty"`
 		Description  string `json:"description,omitempty"`
 		RequestedAt  int64  `json:"requestedAt,omitempty"`
